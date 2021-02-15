@@ -10,7 +10,7 @@ import argparse
 global VERBOSITY_LEVEL
 VERBOSITY_LEVEL = 0
 
-def addFileHashes(path: Path) -> Union[dict,bool]:
+def addFileHashesRecursive(path: Path) -> Union[dict,bool]:
     if VERBOSITY_LEVEL > 0:
         print("Searching in " + str(path))
     hashmap = dict()
@@ -63,11 +63,15 @@ if __name__ == "__main__":
 
     # Ask for path
     path = input("Insert a path (leave empty to start from the current directory): ")
-    if len(path) == 0:
-        path = "."
+    while True:
+        if Path(path).is_dir(): break
+        if len(path) == 0:
+            path = "."
+            break
+        path = input("Input not a directory, insert valid input: ")
 
     # Run
-    hashmap, duplicatesExist = addFileHashes(Path(path))
+    hashmap, duplicatesExist = addFileHashesRecursive(Path(path))
 
     # Show results
     if not duplicatesExist:
