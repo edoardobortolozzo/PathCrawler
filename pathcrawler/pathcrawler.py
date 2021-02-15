@@ -11,17 +11,21 @@ global VERBOSITY_LEVEL
 VERBOSITY_LEVEL = 0
 
 def addFileHashesRecursive(path: Path) -> Union[dict,bool]:
+    #init function
     if VERBOSITY_LEVEL > 0:
         print("Searching in " + str(path))
     hashmap = dict()
     dirs = list()
     duplicatesExist = False
+
+    #check if element is file or directory
     for el in path.iterdir():
         if VERBOSITY_LEVEL > 1:
             print(el)
         if el.is_dir():
             dirs.append(el)
         else:
+            #add hash at dictionary
             with open(str(el),"rb") as f:
                 bytes = f.read()
                 hashstr = blake2b(bytes).hexdigest()
@@ -31,10 +35,37 @@ def addFileHashesRecursive(path: Path) -> Union[dict,bool]:
                 else:
                     hashmap[hashstr] = [str(el)]
             f.close()
+    #call function recursively on subdirectories
     for subdir in dirs:
-        h, de = addFileHashes(subdir)
+        h, de = addFileHashesRecursive(subdir)
         duplicatesExist = de
         hashmap.update(h)
+    return hashmap, duplicatesExist
+
+def addFileHashesIterative(path: Path) -> Union[dict,bool]:
+    hashmap = dict()
+    dirs = [path]
+    duplicatesExist = False
+
+    while dirs:
+        if VERBOSITY_LEVEL > 0:
+            print("Searching in " + str(path))
+        path = dirs.pop()
+        for el in path.iterdir():
+            if VERBOSITY_LEVEL > 1:
+                print(el)
+            if el.is_dir():
+                dirs.append(el)
+            else:
+                with open(str(el),"rb") as f:
+                    bytes = f.read()
+                    hashstr = blake2b(bytes).hexdigest()
+                    if hashstr in hashmap:
+                        duplicatesExist = True
+                        hashmap.get(hashstr).append(str(el))
+                    else:
+                        hashmap[hashstr] = [str(el)]
+                f.close()
     return hashmap, duplicatesExist
 
 if __name__ == "__main__":
