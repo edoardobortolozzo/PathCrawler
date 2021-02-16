@@ -38,8 +38,13 @@ def addFileHashesRecursive(path: Path) -> Union[dict,bool]:
     #call function recursively on subdirectories
     for subdir in dirs:
         h, de = addFileHashesRecursive(subdir)
-        duplicatesExist = de
-        hashmap.update(h)
+        duplicatesExist = de or duplicatesExist
+        for hashstr in h.keys():
+            if hashstr in hashmap:
+                duplicatesExist = True
+                hashmap.get(hashstr).append(h.get(hashstr))
+            else:
+                hashmap[hashstr] = h.get(hashstr)
     return hashmap, duplicatesExist
 
 def addFileHashesIterative(path: Path) -> Union[dict,bool]:
@@ -102,7 +107,7 @@ if __name__ == "__main__":
         path = input("Input not a directory, insert valid input: ")
 
     # Run
-    hashmap, duplicatesExist = addFileHashesRecursive(Path(path))
+    hashmap, duplicatesExist = addFileHashesIterative(Path(path))
 
     # Show results
     if not duplicatesExist:
