@@ -88,6 +88,13 @@ if __name__ == "__main__":
             action="store_true",
             help="set verbosity level to 2 (default is 0)"
     )
+    parser.add_argument(
+            "-r", "--recursive",
+            default=False,
+            action="store_true",
+            help="use recorsion on the directories instead"
+    )
+    
     args = parser.parse_args()
     if args.verbose and args.veryverbose:
         print("Error: cannot use both `--verbose` and `--veryverbose`")
@@ -107,7 +114,10 @@ if __name__ == "__main__":
         path = input("Input not a directory, insert valid input: ")
 
     # Run
-    hashmap, duplicatesExist = addFileHashesIterative(Path(path))
+    if args.recursive:
+        hashmap, duplicatesExist = addFileHashesRecursive(Path(path))
+    else:
+        hashmap, duplicatesExist = addFileHashesIterative(Path(path))
 
     # Show results
     if not duplicatesExist:
