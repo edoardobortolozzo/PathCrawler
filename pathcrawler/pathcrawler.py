@@ -10,7 +10,7 @@ import argparse
 global VERBOSITY_LEVEL
 VERBOSITY_LEVEL = 0
 
-def addFileHashesRecursive(path: Path) -> Union[dict,bool]:
+def addFileHashesRecursive(path: Path, extensions=[]) -> Union[dict,bool]:
     #init function
     if VERBOSITY_LEVEL > 0:
         print("Searching in " + str(path))
@@ -25,6 +25,7 @@ def addFileHashesRecursive(path: Path) -> Union[dict,bool]:
         if el.is_dir():
             dirs.append(el)
         else:
+            if el.suffix in extensions: continue
             #add hash at dictionary
             with open(str(el),"rb") as f:
                 bytes = f.read()
@@ -47,7 +48,7 @@ def addFileHashesRecursive(path: Path) -> Union[dict,bool]:
                 hashmap[hashstr] = h.get(hashstr)
     return hashmap, duplicatesExist
 
-def addFileHashesIterative(path: Path) -> Union[dict,bool]:
+def addFileHashesIterative(path: Path, extensions=[]) -> Union[dict,bool]:
     hashmap = dict()
     dirs = [path]
     duplicatesExist = False
@@ -62,6 +63,7 @@ def addFileHashesIterative(path: Path) -> Union[dict,bool]:
             if el.is_dir():
                 dirs.append(el)
             else:
+                if el.suffix in extensions: continue
                 with open(str(el),"rb") as f:
                     bytes = f.read()
                     hashstr = blake2b(bytes).hexdigest()
@@ -78,15 +80,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Find duplicate files.")
     parser.add_argument(
             "-v", "--verbose",
-            default=False,
-            action="store_true",
-            help="set verbosity level to 1 (default is 0)"
-    )
-    parser.add_argument(
-            "-vv", "--veryverbose",
-            default=False,
-            action="store_true",
-            help="set verbosity level to 2 (default is 0)"
+            default=0,
+            action="count",
+            help="increases verbosity level by 1 (default is 0)"
     )
     parser.add_argument(
             "-r", "--recursive",
@@ -94,15 +90,18 @@ if __name__ == "__main__":
             action="store_true",
             help="use recorsion on the directories instead"
     )
+    parser.add_argument(
+            "-x", "--exclude",
+            action="extend",
+            nargs="+",
+            type=str,
+            default=[],
+            help="exclude file extension"
+    )
     
     args = parser.parse_args()
-    if args.verbose and args.veryverbose:
-        print("Error: cannot use both `--verbose` and `--veryverbose`")
-        exit(1)
     if args.verbose:
-        VERBOSITY_LEVEL = 1
-    elif args.veryverbose:
-        VERBOSITY_LEVEL = 2
+        VERBOSITY_LEVEL = args.verbose
 
     # Ask for path
     path = input("Insert a path (leave empty to start from the current directory): ")
@@ -117,7 +116,7 @@ if __name__ == "__main__":
     if args.recursive:
         hashmap, duplicatesExist = addFileHashesRecursive(Path(path))
     else:
-        hashmap, duplicatesExist = addFileHashesIterative(Path(path))
+        hashmap, duplicatesExist = addFileHashesIterative(Path(path), args.exclude)
 
     # Show results
     if not duplicatesExist:
