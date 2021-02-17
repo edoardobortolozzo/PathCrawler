@@ -79,6 +79,13 @@ if __name__ == "__main__":
     # Parse cmd line args
     parser = argparse.ArgumentParser(description="Find duplicate files.")
     parser.add_argument(
+            "path",
+            default="",
+            nargs="?",
+            type=str,
+            help="path"
+    )
+    parser.add_argument(
             "-v", "--verbose",
             default=0,
             action="count",
@@ -104,7 +111,10 @@ if __name__ == "__main__":
         VERBOSITY_LEVEL = args.verbose
 
     # Ask for path
-    path = input("Insert a path (leave empty to start from the current directory): ")
+    if not args.path:
+        path = input("Insert a path (leave empty to start from the current directory): ")
+    else:
+        path = args.path
     while True:
         if Path(path).is_dir(): break
         if len(path) == 0:
@@ -114,7 +124,7 @@ if __name__ == "__main__":
 
     # Run
     if args.recursive:
-        hashmap, duplicatesExist = addFileHashesRecursive(Path(path))
+        hashmap, duplicatesExist = addFileHashesRecursive(Path(path), args.exclude)
     else:
         hashmap, duplicatesExist = addFileHashesIterative(Path(path), args.exclude)
 
