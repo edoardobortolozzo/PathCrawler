@@ -10,6 +10,13 @@ import argparse
 global VERBOSITY_LEVEL
 VERBOSITY_LEVEL = 0
 
+def getFileHash(element: Path):
+    with open(str(element),"rb") as f:
+        bytes = f.read()
+        hashstr = blake2b(bytes).hexdigest()
+    f.close()
+    return hashstr
+
 def addFileHashesRecursive(path: Path, extensions=[]) -> Union[dict,bool]:
     #init function
     if VERBOSITY_LEVEL > 0:
@@ -27,15 +34,13 @@ def addFileHashesRecursive(path: Path, extensions=[]) -> Union[dict,bool]:
         else:
             if el.suffix in extensions: continue
             #add hash at dictionary
-            with open(str(el),"rb") as f:
-                bytes = f.read()
-                hashstr = blake2b(bytes).hexdigest()
-                if hashstr in hashmap:
-                    duplicatesExist = True
-                    hashmap.get(hashstr).append(str(el))
-                else:
-                    hashmap[hashstr] = [str(el)]
-            f.close()
+            hashstr = getFileHash(el)
+            if hashstr in hashmap:
+                duplicatesExist = True
+                hashmap.get(hashstr).append(str(el))
+            else:
+                hashmap[hashstr] = [str(el)]
+
     #call function recursively on subdirectories
     for subdir in dirs:
         h, de = addFileHashesRecursive(subdir)
@@ -64,15 +69,12 @@ def addFileHashesIterative(path: Path, extensions=[]) -> Union[dict,bool]:
                 dirs.append(el)
             else:
                 if el.suffix in extensions: continue
-                with open(str(el),"rb") as f:
-                    bytes = f.read()
-                    hashstr = blake2b(bytes).hexdigest()
-                    if hashstr in hashmap:
-                        duplicatesExist = True
-                        hashmap.get(hashstr).append(str(el))
-                    else:
-                        hashmap[hashstr] = [str(el)]
-                f.close()
+                hashstr = getFileHash(el)
+                if hashstr in hashmap:
+                    duplicatesExist = True
+                    hashmap.get(hashstr).append(str(el))
+                else:
+                    hashmap[hashstr] = [str(el)]
     return hashmap, duplicatesExist
 
 if __name__ == "__main__":
