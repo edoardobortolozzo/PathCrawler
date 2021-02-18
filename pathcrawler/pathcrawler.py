@@ -23,6 +23,7 @@ def addFileHashesRecursive(path: Path, extensions=[]) -> Union[dict,bool]:
         if VERBOSITY_LEVEL > 1:
             print(el)
         if el.is_dir():
+            if el.parts[-1] in extensions: continue
             dirs.append(el)
         else:
             if el.suffix in extensions: continue
@@ -38,7 +39,7 @@ def addFileHashesRecursive(path: Path, extensions=[]) -> Union[dict,bool]:
             f.close()
     #call function recursively on subdirectories
     for subdir in dirs:
-        h, de = addFileHashesRecursive(subdir)
+        h, de = addFileHashesRecursive(subdir, extensions)
         duplicatesExist = de or duplicatesExist
         for hashstr in h.keys():
             if hashstr in hashmap:
@@ -61,6 +62,7 @@ def addFileHashesIterative(path: Path, extensions=[]) -> Union[dict,bool]:
             if VERBOSITY_LEVEL > 1:
                 print(el)
             if el.is_dir():
+                if el.parts[-1] in extensions: continue
                 dirs.append(el)
             else:
                 if el.suffix in extensions: continue
@@ -105,7 +107,7 @@ if __name__ == "__main__":
             default=[],
             help="exclude file extension"
     )
-    
+
     args = parser.parse_args()
     if args.verbose:
         VERBOSITY_LEVEL = args.verbose
