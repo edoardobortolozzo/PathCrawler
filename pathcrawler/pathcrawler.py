@@ -10,7 +10,7 @@ import argparse
 global VERBOSITY_LEVEL
 VERBOSITY_LEVEL = 0
 
-def getFileHash(element: Path):
+def getFileHash(element: Path) -> str:
     with open(str(element),"rb") as f:
         bytes = f.read()
         hashstr = blake2b(bytes).hexdigest()
