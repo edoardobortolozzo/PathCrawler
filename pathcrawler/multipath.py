@@ -2,6 +2,7 @@ from pathlib import Path
 from hashlib import blake2b
 from typing import Union
 import argparse
+import multiprocessing as mp
 import time
 
 # Verbosity Levels:
@@ -18,47 +19,15 @@ def getFileHash(element: Path) -> str:
     f.close()
     return hashstr
 
-def addFileHashesRecursive(path: Path, extensions=[]) -> Union[dict,bool]:
-    #init function
-    if VERBOSITY_LEVEL > 0:
-        print("Searching in " + str(path))
-    hashmap = dict()
-    dirs = list()
-    duplicatesExist = False
-
-    #check if element is file or directory
-    for el in path.iterdir():
-        if VERBOSITY_LEVEL > 1:
-            print(el)
-        if el.is_dir():
-            if el.parts[-1] in extensions: continue
-            dirs.append(el)
-        else:
-            if el.suffix in extensions: continue
-            #add hash at dictionary
-            hashstr = getFileHash(el)
-            if hashstr in hashmap:
-                duplicatesExist = True
-                hashmap.get(hashstr).append(str(el))
-            else:
-                hashmap[hashstr] = [str(el)]
-
-    #call function recursively on subdirectories
-    for subdir in dirs:
-        h, de = addFileHashesRecursive(subdir, extensions)
-        duplicatesExist = de or duplicatesExist
-        for hashstr in h.keys():
-            if hashstr in hashmap:
-                duplicatesExist = True
-                hashmap.get(hashstr).append(h.get(hashstr))
-            else:
-                hashmap[hashstr] = h.get(hashstr)
-    return hashmap, duplicatesExist
+def getMpFileHash(element: Path) -> Union[str,str]:
+    hashstr = getFileHash(element)
+    return str(element),hashstr
 
 def addFileHashesIterative(path: Path, extensions=[]) -> Union[dict,bool]:
     hashmap = dict()
     dirs = [path]
     duplicatesExist = False
+    files = []
 
     while dirs:
         if VERBOSITY_LEVEL > 0:
@@ -72,12 +41,23 @@ def addFileHashesIterative(path: Path, extensions=[]) -> Union[dict,bool]:
                 dirs.append(el)
             else:
                 if el.suffix in extensions: continue
-                hashstr = getFileHash(el)
-                if hashstr in hashmap:
-                    duplicatesExist = True
-                    hashmap.get(hashstr).append(str(el))
-                else:
-                    hashmap[hashstr] = [str(el)]
+                files.append(el)
+                #hashstr = getFileHash(el)
+                #if hashstr in hashmap:
+                #    duplicatesExist = True
+                #    hashmap.get(hashstr).append(str(el))
+                #else:
+                #    hashmap[hashstr] = [str(el)]
+
+    with mp.Pool(mp.cpu_count()) as pool:
+        arr = pool.map(getMpFileHash, files)
+        for path, hashstr in arr:
+            if hashstr in hashmap:
+                duplicatesExist = True
+                hashmap.get(hashstr).append(path)
+            else:
+                hashmap[hashstr] = [path]
+
     return hashmap, duplicatesExist
 
 if __name__ == "__main__":
@@ -95,12 +75,6 @@ if __name__ == "__main__":
             default=0,
             action="count",
             help="increases verbosity level by 1 (default is 0)"
-    )
-    parser.add_argument(
-            "-r", "--recursive",
-            default=False,
-            action="store_true",
-            help="use recorsion on the directories instead"
     )
     parser.add_argument(
             "-x", "--exclude",
@@ -129,10 +103,7 @@ if __name__ == "__main__":
 
     # Run
     t1 = time.time()
-    if args.recursive:
-        hashmap, duplicatesExist = addFileHashesRecursive(Path(path), args.exclude)
-    else:
-        hashmap, duplicatesExist = addFileHashesIterative(Path(path), args.exclude)
+    hashmap, duplicatesExist = addFileHashesIterative(Path(path), args.exclude)
     t2 = time.time()
 
     # Show results
