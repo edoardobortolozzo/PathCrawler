@@ -32,4 +32,4 @@ The plan at the moment is to publish it at version 2.0.
 If you like the project and you'd like to support the development, you can
 buy a coffe to fuel the machines behind it.
 
-[buy a coffe](https://www.buymeacoffee.com/safesintesi)
+<a href="https://www.buymeacoffee.com/safesintesi" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
