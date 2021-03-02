@@ -37,18 +37,15 @@ def addFileHashesRecursive(path: Path, extensions=[]) -> Union[dict,bool]:
     with mp.Pool(NUM_THREADS) as pool:
         arr = pool.map(lib.getMpFileHash, files)
         for path, hashstr in arr:
-            if hashstr in hashmap:
-                duplicatesExist = True
-                hashmap.get(hashstr).append(path)
-            else:
-                hashmap[hashstr] = [path]
+            hashmap, b = appendHashmap(hashmap, hashstr, path)
+            duplicatesExist = duplicatesExist or b
 
     #call function recursively on subdirectories
     for subdir in dirs:
         h, de = addFileHashesRecursive(subdir, extensions)
         duplicatesExist = de or duplicatesExist
-        for hashstr in h.keys():
-            path = h.get(hashstr)
+        for hashstr in h.keys(): 
+            path = h.get(hashstr) #FIXME ISSUE #6
             if hashstr in hashmap:
                 duplicatesExist = True
                 hashmap.get(hashstr).append(path)
