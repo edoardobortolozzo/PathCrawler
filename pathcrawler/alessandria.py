@@ -2,9 +2,7 @@ from hashlib import blake2b
 from pathlib import Path
 from typing import Union
 import multiprocessing as mp
-
-global NUM_THREADS
-NUM_THREADS = 1
+import global_settings as gs
 
 def getFileHash(element: Path) -> str:
     with open(str(element),"rb") as f:
@@ -18,7 +16,8 @@ def getMpFileHash(element: Path) -> Union[str,str]:
     return str(element),hashstr
 
 def updateHashmap(hashmap: dict, files: list) -> Union[dict, bool]:
-    with mp.Pool(NUM_THREADS) as pool:
+    if gs.DEBUG: print("\nNumber workers: ", gs.NUM_THREADS)
+    with mp.Pool(gs.NUM_THREADS) as pool:
         duplicatesExist = False
         arr = list(zip(files, pool.map(getFileHash, files)))
         for path, hashstr in arr:

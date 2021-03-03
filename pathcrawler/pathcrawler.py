@@ -4,17 +4,12 @@ import argparse
 import multiprocessing as mp
 import time
 import alessandria as lib
+import global_settings as gs
 
-# Verbosity Levels:
-#   0 -> non-verbose
-#   1 -> verbose
-#   2 -> very verbose
-global VERBOSITY_LEVEL
-VERBOSITY_LEVEL = 0
 
 def addFileHashesRecursive(path: Path, extensions=[]) -> Union[dict,bool]:
     #init function
-    if VERBOSITY_LEVEL > 0:
+    if gs.VERBOSITY_LEVEL > 0:
         print("Searching in " + str(path))
     hashmap = dict()
     dirs = list()
@@ -23,7 +18,7 @@ def addFileHashesRecursive(path: Path, extensions=[]) -> Union[dict,bool]:
 
     #check if element is file or directory
     for el in path.iterdir():
-        if VERBOSITY_LEVEL > 1:
+        if gs.VERBOSITY_LEVEL > 1:
             print(el)
         if el.is_dir():
             if el.parts[-1] in extensions: continue
@@ -61,10 +56,10 @@ def addFileHashesIterative(path: Path, extensions=[]) -> Union[dict,bool]:
 
     while dirs:
         path = dirs.pop()
-        if VERBOSITY_LEVEL > 0:
+        if gs.VERBOSITY_LEVEL > 0:
             print("Searching in " + str(path))
         for el in path.iterdir():
-            if VERBOSITY_LEVEL > 1:
+            if gs.VERBOSITY_LEVEL > 1:
                 print(el)
             if el.is_dir():
                 if el.parts[-1] in extensions: continue
@@ -114,13 +109,23 @@ if __name__ == "__main__":
             action="store",
             help="set number of processes - if more than cpu core, is set to cpu_count()"
     )
+    parser.add_argument(
+            "-d", "--debug",
+            default=False,
+            action="store_true",
+            help="set debug to true"
+    )
 
     # Set global values
     args = parser.parse_args()
     if args.verbose:
-        VERBOSITY_LEVEL = args.verbose
+        gs.VERBOSITY_LEVEL = args.verbose
 
-    NUM_THREADS = min(args.threads, mp.cpu_count())
+    if args.threads > 1:
+        gs.NUM_THREADS = min(args.threads, mp.cpu_count())
+
+    if args.debug:
+        gs.DEBUG = True
 
     # Ask for path
     if not args.path:
@@ -135,22 +140,22 @@ if __name__ == "__main__":
         path = input("Input not a directory, insert valid input: ")
 
     # Run
-    t1 = time.time()
+    if gs.DEBUG: t1 = time.time()
     if args.recursive:
         hashmap, duplicatesExist = addFileHashesRecursive(Path(path), args.exclude)
     else:
         hashmap, duplicatesExist = addFileHashesIterative(Path(path), args.exclude)
-    t2 = time.time()
+    if gs.DEBUG: t2 = time.time()
 
     # Show results
     if not duplicatesExist:
-        print("\n\nNo duplicate files found.\n")
+        print("\nNo duplicate files found.\n")
         exit()
-    print("\n\nDuplicate files found:\n")
+    print("\nDuplicate files found:\n")
     for key in hashmap.keys():
         lista = hashmap[key]
         if not len(lista) == 1:
             print("=================")
             print(lista)
             print("=================")
-    print("time: ", t2 - t1)
+    if gs.DEBUG: print("time: ", t2 - t1)
