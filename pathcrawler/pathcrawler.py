@@ -29,23 +29,20 @@ def addFileHashesRecursive(path: Path, extensions=[]) -> Union[dict,bool]:
             files.append(el)
 
     #TODO FIXME chiamata funzione lib.updateHashmap()
-    with mp.Pool(NUM_THREADS) as pool:
+    with mp.Pool(gs.NUM_THREADS) as pool:
         arr = pool.map(lib.getMpFileHash, files)
         for path, hashstr in arr:
-            hashmap, b = appendHashmap(hashmap, hashstr, path)
+            hashmap, b = lib.appendHashmap(hashmap, hashstr, path)
             duplicatesExist = duplicatesExist or b
 
     #call function recursively on subdirectories
     for subdir in dirs:
         h, de = addFileHashesRecursive(subdir, extensions)
         duplicatesExist = de or duplicatesExist
-        for hashstr in h.keys(): 
-            path = h.get(hashstr) #FIXME ISSUE #6
-            if hashstr in hashmap:
-                duplicatesExist = True
-                hashmap.get(hashstr).append(path)
-            else:
-                hashmap[hashstr] = path
+        for hashstr in h.keys():
+            hashmap, de = lib.extendHashmap(hashmap, hashstr, h.get(hashstr))
+            duplicatesExist = de or duplicatesExist
+
     return hashmap, duplicatesExist
 
 def addFileHashesIterative(path: Path, extensions=[]) -> Union[dict,bool]:

@@ -21,17 +21,20 @@ def updateHashmap(hashmap: dict, files: list) -> Union[dict, bool]:
         duplicatesExist = False
         arr = list(zip(files, pool.map(getFileHash, files)))
         for path, hashstr in arr:
-            hashmap, b = appendHashmap(hashmap, hashstr, path)
-            duplicatesExist = duplicatesExist or b
+            hashmap, de = appendHashmap(hashmap, hashstr, path)
+            duplicatesExist = duplicatesExist or de
                 
     return hashmap, duplicatesExist
 
 def appendHashmap(hashmap: dict, key: str, value: str) -> Union[dict, bool]:
+    return extendHashmap(hashmap, key, [value])
+
+def extendHashmap(hashmap: dict, key: str, value: list) -> Union[dict, bool]:
     duplicatesExist = False
     if key in hashmap:
         duplicatesExist = True
-        hashmap.get(key).append(value)
+        hashmap.get(key).extend(value)
     else:
-        hashmap[key] = [value]
+        hashmap[key] = value
     
     return hashmap, duplicatesExist
