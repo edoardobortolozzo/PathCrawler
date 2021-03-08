@@ -3,7 +3,7 @@ import time
 import global_settings as gs
 from core import addFileHashesRecursive
 from core import addFileHashesIterative
-from arg_parser import parser 
+from arg_parser import parser
 
 if __name__ == "__main__":
     # Set global values
@@ -12,7 +12,7 @@ if __name__ == "__main__":
         gs.VERBOSITY_LEVEL = args.verbose
 
     if args.threads > 1:
-        gs.NUM_THREADS = min(args.threads, mp.cpu_count())
+        gs.setThreads(args.threads)
 
     if args.debug:
         gs.DEBUG = True
