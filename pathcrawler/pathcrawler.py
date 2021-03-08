@@ -1,9 +1,10 @@
 from pathlib import Path
 import time
+import multiprocessing as mp
 import global_settings as gs
 from core import addFileHashesRecursive
 from core import addFileHashesIterative
-from arg_parser import parser 
+from arg_parser import parser
 
 if __name__ == "__main__":
     # Set global values

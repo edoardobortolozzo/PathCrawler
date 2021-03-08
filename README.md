@@ -13,19 +13,19 @@ addFileHashes(path: Path, extensions=[]) -> Union[dict,bool]
 getFileHash(element: Path) -> str
 
 ## Example
-You can try the program with 
+You can try the program with
 
 ```shell
 $ py pathcrawler [directory]
 ```
 
-Or you can learn more on how to use the command with 
+Or you can learn more on how to use the command with
 ```shell
 $ py pathcrawler -h
 ```
 
 ## Developing and installation
-Unfortunatly the library ins't aviable on pip yet.
+Unfortunatly the library isn't available on pip yet.
 The plan at the moment is to publish it at version 2.0.
 
 ## Donations
