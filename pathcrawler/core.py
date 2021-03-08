@@ -6,6 +6,10 @@ import global_settings as gs
 
 
 def addFileHashesRecursive(path: Path, extensions=[]) -> Union[dict,bool]:
+    with mp.Pool(gs.NUM_THREADS) as pool:
+        return FHR(path, pool, extensions)
+
+def FHR(path: Path, pool: mp.Pool, extensions=[]) -> Union[dict,bool]:
     #init function
     if gs.VERBOSITY_LEVEL > 0:
         print("Searching in " + str(path))
@@ -26,16 +30,14 @@ def addFileHashesRecursive(path: Path, extensions=[]) -> Union[dict,bool]:
             #add hash at dictionary
             files.append(el)
 
-    #TODO FIXME chiamata funzione lib.updateHashmap()
-    with mp.Pool(gs.NUM_THREADS) as pool:
-        arr = pool.map(lib.getMpFileHash, files)
-        for path, hashstr in arr:
-            hashmap, b = lib.appendHashmap(hashmap, hashstr, path)
-            duplicatesExist = duplicatesExist or b
+    arr = pool.map(lib.getMpFileHash, files)
+    for path, hashstr in arr:
+        hashmap, b = lib.appendHashmap(hashmap, hashstr, path)
+        duplicatesExist = duplicatesExist or b
 
     #call function recursively on subdirectories
     for subdir in dirs:
-        h, de = addFileHashesRecursive(subdir, extensions)
+        h, de = FHR(subdir, pool, extensions)
         duplicatesExist = de or duplicatesExist
         for hashstr in h.keys():
             hashmap, de = lib.extendHashmap(hashmap, hashstr, h.get(hashstr))
