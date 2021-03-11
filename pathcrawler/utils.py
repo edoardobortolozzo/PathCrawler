@@ -39,7 +39,7 @@ def updateHashmap(hashmap: dict, files: list) -> Union[dict, bool]:
             if not hashstr:
                 if gs.VERBOSITY_LEVEL > 0:
                     print("Warning: File not found")
-                    print("\t", str(element), "could be missing reference link")
+                    print("\t", str(path), "could be missing reference link")
                 continue
             hashmap, de = appendHashmap(hashmap, hashstr, path)
             duplicatesExist = duplicatesExist or de
