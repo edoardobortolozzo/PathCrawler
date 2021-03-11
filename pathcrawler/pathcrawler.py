@@ -8,14 +8,16 @@ from arg_parser import parser
 if __name__ == "__main__":
     # Set global values
     args = parser.parse_args()
+    if args.debug:
+        gs.DEBUG = True
+
     if args.verbose:
         gs.VERBOSITY_LEVEL = args.verbose
+        if gs.DEBUG: print("Verbosity: ",gs.VERBOSITY_LEVEL)
 
     if args.threads > 1:
         gs.setThreads(args.threads)
 
-    if args.debug:
-        gs.DEBUG = True
 
     # Ask for path
     if not args.path:
